@@ -7,6 +7,7 @@
   "type": "commonjs",
   "scripts": {
     "typecheck": "tsgo --noEmit",
+    "release": "standard-version",
     "build": "npm run typecheck && tsx build.ts",
     "generate": "tsx yaml_generator/generator.ts",
     "artifacts": "npm run build && npm run generate",
@@ -33,6 +34,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.0.4",
     "prettier": "^3.8.1",
+    "standard-version": "^9.5.0",
     "tsx": "^4.20.6",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.2"
