@@ -17,7 +17,7 @@ https://github.com/powerfullz/override-rules
 - 源码已迁移至 `src/*.ts` 文件，使用 TypeScript 编写，编译后输出到 `dist/*.js`。
 */
 
-import { CDN_URL, PROXY_GROUPS } from "./constants";
+import { CDN_URL, NODE_SUFFIX, PROXY_GROUPS } from "./constants";
 import { buildFeatureFlags } from "./args";
 import { buildCountryProxyGroups, buildProxyGroups } from "./proxy_groups";
 import {
@@ -27,6 +27,7 @@ import {
     parseNodesByLanding,
     stripNodeSuffix,
 } from "./node_parser";
+import { proxyProviders, PROXY_PROVIDER_NAMES } from "./proxy_providers";
 import { buildRules } from "./rules";
 import { ruleProviders } from "./rule_providers";
 import { buildDns, snifferConfig } from "./dns";
@@ -121,6 +122,20 @@ function main(config: ClashConfig): ClashConfig {
         proxies: globalProxies,
     });
 
+    for (const group of proxyGroups) {
+        const name = String(group.name);
+        if (
+            name === PROXY_GROUPS.SELECT ||
+            name === PROXY_GROUPS.MANUAL ||
+            name === PROXY_GROUPS.AUTO ||
+            name === PROXY_GROUPS.FALLBACK ||
+            name === PROXY_GROUPS.LOW_COST ||
+            name.endsWith(NODE_SUFFIX)
+        ) {
+            group.use = [...PROXY_PROVIDER_NAMES];
+        }
+    }
+
     const finalRules = buildRules({ quicEnabled });
 
     if (fullConfig) {
@@ -158,6 +173,7 @@ function main(config: ClashConfig): ClashConfig {
     }
 
     Object.assign(resultConfig, {
+        "proxy-providers": proxyProviders,
         "proxy-groups": proxyGroups,
         "rule-providers": ruleProviders,
         rules: finalRules,
