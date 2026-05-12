@@ -52,7 +52,6 @@ jobs:
           mkdir -p publish/yamls
 
           cp convert.js publish/convert.js
-          cp convert.min.js publish/convert.min.js
           cp -a yamls/. publish/yamls/
 
           # Package yamls.tar.gz for release assets
@@ -147,8 +146,8 @@ jobs:
           
           构建产物已同步并放于根目录。
 
-          - JS 覆写 (最新版, 推荐)：`https://cdn.jsdelivr.net/gh/${{ github.repository }}/convert.min.js`
-          - JS 覆写 (当前版本)：`https://cdn.jsdelivr.net/gh/${{ github.repository }}@${{ env.VERSION }}/convert.min.js`
+          - JS 覆写 (最新版, 推荐)：`https://cdn.jsdelivr.net/gh/${{ github.repository }}/convert.js`
+          - JS 覆写 (当前版本)：`https://cdn.jsdelivr.net/gh/${{ github.repository }}@${{ env.VERSION }}/convert.js`
           - YAML 索引 (最新版)：`https://cdn.jsdelivr.net/gh/${{ github.repository }}/manifest.json`
           - YAML 索引 (当前版本)：`https://cdn.jsdelivr.net/gh/${{ github.repository }}@${{ env.VERSION }}/manifest.json`
           EOF
@@ -160,12 +159,12 @@ jobs:
           body_path: RELEASE_NOTES.md
           files: |
             convert.js
-            convert.min.js
+            convert.js
             yamls.tar.gz
 
       - name: Purge jsDelivr cache
         run: |
           set -euo pipefail
 
-          curl -fsS "https://purge.jsdelivr.net/gh/${{ github.repository }}/convert.min.js"
-          curl -fsS "https://purge.jsdelivr.net/gh/${{ github.repository }}@${{ env.VERSION }}/convert.min.js"
+          curl -fsS "https://purge.jsdelivr.net/gh/${{ github.repository }}/convert.js"
+          curl -fsS "https://purge.jsdelivr.net/gh/${{ github.repository }}@${{ env.VERSION }}/convert.js"
