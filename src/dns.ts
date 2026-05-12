@@ -2,7 +2,7 @@
  * 默认的 fake-ip 过滤域名列表。
  * 这些域名不会被 fake-ip 机制代理，防止 FakeIP 污染。
  * 涵盖：国内域名、私有地址、连通性检查、STUN/NAT、时间同步、Apple Push 等。
- */
+ */ 自用;
 const FAKE_IP_FILTER = [
     "geosite:private",
     "geosite:connectivity-check",
