@@ -1,6 +1,7 @@
 /**
  * 默认的 fake-ip 过滤域名列表。
- * 这些域名不会被 fake-ip 机制代理。
+ * 这些域名不会被 fake-ip 机制代理，防止 FakeIP 污染。
+ * 涵盖：国内域名、私有地址、连通性检查、STUN/NAT、时间同步、Apple Push 等。
  */
 const FAKE_IP_FILTER = [
     "geosite:private",
@@ -9,14 +10,24 @@ const FAKE_IP_FILTER = [
     "Mijia Cloud",
     "dig.io.mi.com",
     "localhost.ptlogin2.qq.com",
+    "+.push.apple.com",
     "*.icloud.com",
     "*.stun.*.*",
     "*.stun.*.*.*",
+    "*.stun.*.*.*.*",
+    "time.*.com",
+    "time.*.apple.com",
+    "time.*.cloudflare.com",
+    "time.windows.com",
+    "ntp.*.com",
+    "time.nist.gov",
+    "pool.ntp.org",
+    "+.pool.ntp.org",
 ];
 
 /**
  * 嗅探器配置。
- * @type {object}
+ * 支持 TLS/HTTP/QUIC 协议嗅探，兼容 Reality/H3 场景。
  */
 export const snifferConfig = {
     sniff: {
@@ -30,10 +41,17 @@ export const snifferConfig = {
             ports: [443, 8443],
         },
     },
-    "override-destination": false,
     enable: true,
     "force-dns-mapping": true,
-    "skip-domain": ["Mijia Cloud", "dlg.io.mi.com", "+.push.apple.com"],
+    "parse-pure-ip": true,
+    "override-destination": false,
+    "skip-domain": [
+        "Mijia Cloud",
+        "dlg.io.mi.com",
+        "+.push.apple.com",
+        "courier.push.apple.com",
+        "time.*.apple.com",
+    ],
 };
 
 /**
@@ -63,20 +81,31 @@ function buildDnsConfig({
         ipv6: ipv6Enabled,
         "prefer-h3": true,
         "enhanced-mode": mode,
-        "default-nameserver": ["119.29.29.29", "223.5.5.5"],
-        nameserver: ["system", "223.5.5.5", "119.29.29.29", "180.184.1.1"],
+        "default-nameserver": ["223.5.5.5", "119.29.29.29", "180.184.1.1"],
+        nameserver: ["https://doh.pub/dns-query", "https://dns.alidns.com/dns-query", "223.5.5.5"],
         fallback: [
-            "quic://dns0.eu",
-            "https://dns.cloudflare.com/dns-query",
-            "https://dns.sb/dns-query",
-            "tcp://208.67.222.222",
-            "tcp://8.26.56.2",
+            "tls://8.8.8.8",
+            "tls://1.1.1.1",
+            "https://dns.google/dns-query",
+            "https://cloudflare-dns.com/dns-query",
         ],
+        "fallback-filter": {
+            geoip: true,
+            "geoip-code": "CN",
+            geosite: ["gfw"],
+            ipcidr: ["240.0.0.0/4", "0.0.0.0/32"],
+        },
+        "nameserver-policy": {
+            "geosite:cn,private": ["223.5.5.5", "119.29.29.29"],
+            "geosite:google,netflix,telegram,twitter,youtube": ["tls://8.8.8.8", "tls://1.1.1.1"],
+            "geosite:gfw": ["tls://8.8.8.8", "https://dns.google/dns-query"],
+        },
         "proxy-server-nameserver": ["https://dns.alidns.com/dns-query", "tls://dot.pub"],
     };
 
     if (fakeIpFilter) {
         config["fake-ip-filter"] = fakeIpFilter;
+        config["fake-ip-filter-mode"] = "blacklist";
     }
 
     return config;

@@ -135,6 +135,9 @@ function main(config: ClashConfig): ClashConfig {
             mode: "rule",
             "unified-delay": true,
             "tcp-concurrent": true,
+            "tcp-keep-alive-idle": 600,
+            "tcp-keep-alive-interval": 30,
+            "tcp-fast-open": true,
             "find-process-mode": "off",
             "log-level": "info",
             "geodata-loader": "standard",
@@ -142,6 +145,14 @@ function main(config: ClashConfig): ClashConfig {
             "disable-keep-alive": !keepAliveEnabled,
             profile: {
                 "store-selected": true,
+            },
+            tun: {
+                enable: true,
+                stack: "mixed",
+                "dns-hijack": ["any:53", "tcp://any:53"],
+                "auto-route": true,
+                "auto-detect-interface": true,
+                "strict-route": true,
             },
         });
     }
