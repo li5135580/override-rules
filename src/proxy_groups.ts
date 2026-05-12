@@ -135,7 +135,7 @@ export function buildProxyGroups({
         },
         {
             name: PROXY_GROUPS.GITHUB,
-            icon: `${CDN_URL}/gh/Koolson/Qure@master/IconSet/Color/Github.png`,
+            icon: `${CDN_URL}/gh/Koolson/Qure@master/IconSet/Color/GitHub.png`,
             type: "select",
             proxies: defaultProxies,
         },
