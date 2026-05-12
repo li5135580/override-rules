@@ -9,14 +9,6 @@ export const ruleProviders = {
         url: `${CDN_URL}/gh/217heidai/adblockfilters@main/rules/adblockmihomolite.mrs`,
         path: "./ruleset/ADBlock.mrs",
     },
-    SogouInput: {
-        type: "http",
-        behavior: "classical",
-        format: "text",
-        interval: 86400,
-        url: "https://ruleset.skk.moe/Clash/non_ip/sogouinput.txt",
-        path: "./ruleset/SogouInput.txt",
-    },
     StaticResources: {
         type: "http",
         behavior: "domain",
@@ -40,14 +32,6 @@ export const ruleProviders = {
         interval: 86400,
         url: `${CDN_URL}/gh/powerfullz/override-rules@master/ruleset/TikTok.list`,
         path: "./ruleset/TikTok.list",
-    },
-    EHentai: {
-        type: "http",
-        behavior: "classical",
-        format: "text",
-        interval: 86400,
-        url: `${CDN_URL}/gh/powerfullz/override-rules@master/ruleset/EHentai.list`,
-        path: "./ruleset/EHentai.list",
     },
     SteamFix: {
         type: "http",
@@ -88,13 +72,5 @@ export const ruleProviders = {
         interval: 86400,
         url: `${CDN_URL}/gh/powerfullz/override-rules@master/ruleset/Crypto.list`,
         path: "./ruleset/Crypto.list",
-    },
-    Weibo: {
-        type: "http",
-        behavior: "classical",
-        format: "text",
-        interval: 86400,
-        url: `${CDN_URL}/gh/powerfullz/override-rules@master/ruleset/Weibo.list`,
-        path: "./ruleset/Weibo.list",
     },
 };
