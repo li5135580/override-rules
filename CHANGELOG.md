@@ -1,3 +1,9 @@
+## [2.1.5](https://github.com/li5135580/override-rules/compare/src-v2.1.4...src-v2.1.5) (2026-05-12)
+
+
+### Features
+
+* 优化 ([c52c0a5](https://github.com/li5135580/override-rules/commit/c52c0a5722fbe132cecb37eb0b2754867b000e4a))
 ## [2.1.4](https://github.com/li5135580/override-rules/compare/src-v2.1.3...src-v2.1.4) (2026-05-12)
 ## 2.1.3 (2026-05-12)
 
