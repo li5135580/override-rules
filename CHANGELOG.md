@@ -1,3 +1,4 @@
+## [2.2.4](https://github.com/li5135580/override-rules/compare/src-v2.2.3...src-v2.2.4) (2026-05-13)
 ## [2.2.3](https://github.com/li5135580/override-rules/compare/src-v2.1.5...src-v2.2.3) (2026-05-13)
 
 
