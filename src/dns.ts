@@ -5,24 +5,24 @@
  */
 const FAKE_IP_FILTER = [
     "geosite:private",
+    "geosite:private",
     "geosite:connectivity-check",
     "geosite:cn",
     "Mijia Cloud",
     "dig.io.mi.com",
     "localhost.ptlogin2.qq.com",
     "+.push.apple.com",
-    "*.icloud.com",
-    "*.stun.*.*",
-    "*.stun.*.*.*",
-    "*.stun.*.*.*.*",
-    "time.*.com",
-    "time.*.apple.com",
-    "time.*.cloudflare.com",
+    "+.icloud.com",
+    "+.stun",
+    "+.com",
+    "+.apple.com",
+    "+.cloudflare.com",
     "time.windows.com",
-    "ntp.*.com",
-    "time.nist.gov",
+    "+.nist.gov",
     "pool.ntp.org",
     "+.pool.ntp.org",
+    "+.msftncsi.com",
+    "+.msftconnecttest.com",
 ];
 
 /**
@@ -38,7 +38,7 @@ export const snifferConfig = {
             ports: [80, 8080, 8880],
         },
         QUIC: {
-            ports: [443, 8443],
+            ports: [443, 8443, 4433],
         },
     },
     enable: true,
@@ -49,6 +49,7 @@ export const snifferConfig = {
         "Mijia Cloud",
         "dlg.io.mi.com",
         "+.push.apple.com",
+        "*.local",
         "courier.push.apple.com",
         "time.*.apple.com",
     ],
@@ -79,13 +80,21 @@ function buildDnsConfig({
     const config: Record<string, unknown> = {
         enable: true,
         ipv6: ipv6Enabled,
-        "prefer-h3": true,
+        "prefer-h3": false,
         "enhanced-mode": mode,
-        "default-nameserver": ["223.5.5.5", "119.29.29.29", "180.184.1.1"],
-        nameserver: ["https://doh.pub/dns-query", "https://dns.alidns.com/dns-query", "223.5.5.5"],
+        "default-nameserver": [
+            "https://doh.pub/dns-query",
+            "https://dns.alidns.com/dns-query",
+            "tls://dot.pub",
+        ],
+        nameserver: [
+            "https://doh.pub/dns-query",
+            "https://dns.alidns.com/dns-query",
+            "tls://dot.pub",
+        ],
         fallback: [
-            "tls://8.8.8.8",
             "tls://1.1.1.1",
+            "tls://8.8.8.8",
             "https://dns.google/dns-query",
             "https://cloudflare-dns.com/dns-query",
         ],
@@ -93,14 +102,22 @@ function buildDnsConfig({
             geoip: true,
             "geoip-code": "CN",
             geosite: ["gfw"],
-            ipcidr: ["240.0.0.0/4", "0.0.0.0/32"],
+            ipcidr: ["240.0.0.0/4", "0.0.0.0/32", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"],
         },
         "nameserver-policy": {
-            "geosite:cn,private": ["223.5.5.5", "119.29.29.29"],
+            "geosite:cn,private": [
+                "https://doh.pub/dns-query",
+                "https://dns.alidns.com/dns-query",
+                "223.5.5.5",
+            ],
             "geosite:google,netflix,telegram,twitter,youtube": ["tls://8.8.8.8", "tls://1.1.1.1"],
             "geosite:gfw": ["tls://8.8.8.8", "https://dns.google/dns-query"],
         },
-        "proxy-server-nameserver": ["https://dns.alidns.com/dns-query", "tls://dot.pub"],
+        "proxy-server-nameserver": [
+            "https://doh.pub/dns-query",
+            "tls://1.1.1.1",
+            "https://dns.alidns.com/dns-query",
+        ],
     };
 
     if (fakeIpFilter) {
