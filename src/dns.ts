@@ -1,28 +1,26 @@
 /**
- * 强化版 fake-ip 过滤域名列表。
- * 这些域名不会被 fake-ip 机制代理，防止 FakeIP 污染。
- * 覆盖：国内域名、私有地址、连通性检查、STUN/NAT、时间同步、Apple Push、全局外部域名。
+ * Fake-IP 过滤域名列表。
+ * 列入的域名使用真实 DNS 解析，不走 Fake-IP，
+ * 防止连通性检测/STUN/NTP/ApplePush 等服务被 FakeIP 污染。
  */
 const FAKE_IP_FILTER = [
     "geosite:private",
     "geosite:cn",
     "geosite:connectivity-check",
-    "geosite:google",
-    "geosite:netflix",
-    "geosite:telegram",
-    "geosite:twitter",
-    "geosite:youtube",
     "Mijia Cloud",
     "dig.io.mi.com",
     "localhost.ptlogin2.qq.com",
     "+.push.apple.com",
-    "+.icloud.com",
-    "+.stun",
-    "+.com",
-    "+.apple.com",
-    "+.cloudflare.com",
+    "*.icloud.com",
+    "+.stun.*.*",
+    "+.stun.*.*.*",
+    "+.stun.*.*.*.*",
+    "time.*.com",
+    "time.*.apple.com",
+    "time.*.cloudflare.com",
     "time.windows.com",
-    "+.nist.gov",
+    "ntp.*.com",
+    "time.nist.gov",
     "pool.ntp.org",
     "+.pool.ntp.org",
     "+.msftncsi.com",
@@ -31,13 +29,14 @@ const FAKE_IP_FILTER = [
 
 /**
  * 嗅探器配置。
- * 支持 TLS/HTTP/QUIC 协议嗅探，兼容 Reality/H3 场景。
+ * TLS/HTTP/QUIC 全覆盖，兼容 Reality/H3。
+ * PC 端和 Android 端通用。
  */
 export const snifferConfig = {
     sniff: {
         TLS: { ports: [443, 8443] },
         HTTP: { ports: [80, 8080, 8880] },
-        QUIC: { ports: [443, 8443, 4433, 4434] }, // 增加常见 QUIC 端口防泄露
+        QUIC: { ports: [443, 8443, 4433, 4434] },
     },
     enable: true,
     "force-dns-mapping": true,
@@ -47,24 +46,17 @@ export const snifferConfig = {
         "Mijia Cloud",
         "dlg.io.mi.com",
         "+.push.apple.com",
-        "*.local",
         "courier.push.apple.com",
         "time.*.apple.com",
     ],
 };
 
-/**
- * 构建 DNS 配置的输入参数类型
- */
 interface BuildDnsConfigInput {
     mode: "redir-host" | "fake-ip";
     ipv6Enabled: boolean;
     fakeIpFilter?: string[];
 }
 
-/**
- * 构建 Clash DNS 配置对象
- */
 function buildDnsConfig({
     mode,
     ipv6Enabled,
@@ -73,25 +65,21 @@ function buildDnsConfig({
     const config: Record<string, unknown> = {
         enable: true,
         ipv6: ipv6Enabled,
-        "prefer-h3": false,
+        "prefer-h3": true,
         "enhanced-mode": mode,
-        "default-nameserver": [
-            "https://doh.pub/dns-query",
-            "https://dns.alidns.com/dns-query",
-            "tls://dot.pub",
-            "tls://1.1.1.1",
-            "tls://8.8.8.8",
-        ],
+        // 仅用于解析 nameserver/fallback 中 DoH/DoT 的域名，用纯 UDP 最快
+        "default-nameserver": ["223.5.5.5", "119.29.29.29", "180.184.1.1"],
+        // 日常 DNS：国内 DoH/DoT 优先，UDP 兜底（兼顾 Android 弱网）
         nameserver: [
             "https://doh.pub/dns-query",
             "https://dns.alidns.com/dns-query",
             "tls://dot.pub",
-            "tls://1.1.1.1",
-            "tls://8.8.8.8",
+            "223.5.5.5",
         ],
+        // 海外 DNS：触发 fallback-filter 时使用
         fallback: [
-            "tls://1.1.1.1",
             "tls://8.8.8.8",
+            "tls://1.1.1.1",
             "https://dns.google/dns-query",
             "https://cloudflare-dns.com/dns-query",
         ],
@@ -99,21 +87,27 @@ function buildDnsConfig({
             geoip: true,
             "geoip-code": "CN",
             geosite: ["gfw"],
-            ipcidr: ["240.0.0.0/4", "0.0.0.0/32", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"],
+            ipcidr: ["240.0.0.0/4"],
         },
         "nameserver-policy": {
+            // 国内域名走国内 DNS，防投毒
             "geosite:cn,private": [
                 "https://doh.pub/dns-query",
                 "https://dns.alidns.com/dns-query",
                 "223.5.5.5",
             ],
-            "geosite:google,netflix,telegram,twitter,youtube": ["tls://8.8.8.8", "tls://1.1.1.1"],
+            // 常见海外服务强制走海外 DNS 防 DNS 污染
+            "geosite:google,netflix,telegram,twitter,youtube,github": [
+                "tls://8.8.8.8",
+                "tls://1.1.1.1",
+            ],
             "geosite:gfw": ["tls://8.8.8.8", "https://dns.google/dns-query"],
         },
+        // 代理节点自身的 DNS
         "proxy-server-nameserver": [
             "https://doh.pub/dns-query",
-            "tls://1.1.1.1",
             "https://dns.alidns.com/dns-query",
+            "tls://1.1.1.1",
         ],
     };
 
@@ -125,29 +119,14 @@ function buildDnsConfig({
     return config;
 }
 
-/**
- * 构建 DNS 配置的外部接口
- */
 export interface BuildDnsInput {
     fakeIPEnabled: boolean;
     ipv6Enabled: boolean;
 }
 
-/**
- * 生成最终 DNS 配置
- */
 export function buildDns({ fakeIPEnabled, ipv6Enabled }: BuildDnsInput): Record<string, unknown> {
     if (fakeIPEnabled) {
-        // 强制启用 FakeIP + 全局黑名单
-        return buildDnsConfig({
-            mode: "fake-ip",
-            ipv6Enabled,
-            fakeIpFilter: FAKE_IP_FILTER,
-        });
+        return buildDnsConfig({ mode: "fake-ip", ipv6Enabled, fakeIpFilter: FAKE_IP_FILTER });
     }
-    // Redir-Host 模式，也可以保证 IPv4/IPv6 请求走代理
-    return buildDnsConfig({
-        mode: "redir-host",
-        ipv6Enabled,
-    });
+    return buildDnsConfig({ mode: "redir-host", ipv6Enabled });
 }
