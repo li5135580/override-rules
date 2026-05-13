@@ -171,7 +171,7 @@ function main(config: ClashConfig): ClashConfig {
             tun: {
                 enable: true,
                 stack: "mixed",
-                "dns-hijack": ["any:53", "tcp://any:53"],
+                "dns-hijack": ["any:53", "tcp://any:53", "tcp://any:853"],
                 "auto-route": true,
                 "auto-detect-interface": true,
                 "strict-route": true,

@@ -67,14 +67,13 @@ function buildDnsConfig({
         ipv6: ipv6Enabled,
         "prefer-h3": true,
         "enhanced-mode": mode,
-        // 仅用于解析 nameserver/fallback 中 DoH/DoT 的域名，用纯 UDP 最快
-        "default-nameserver": ["223.5.5.5", "119.29.29.29", "180.184.1.1"],
+        // 仅用于解析 DoH/DoT 域名的 IP（bootstrap），二次查询量极小
+        "default-nameserver": ["223.5.5.5", "119.29.29.29"],
         // 日常 DNS：国内 DoH/DoT 优先，UDP 兜底（兼顾 Android 弱网）
         nameserver: [
             "https://doh.pub/dns-query",
             "https://dns.alidns.com/dns-query",
             "tls://dot.pub",
-            "223.5.5.5",
         ],
         // 海外 DNS：触发 fallback-filter 时使用
         fallback: [
@@ -94,7 +93,7 @@ function buildDnsConfig({
             "geosite:cn,private": [
                 "https://doh.pub/dns-query",
                 "https://dns.alidns.com/dns-query",
-                "223.5.5.5",
+                "tls://dot.pub",
             ],
             // 常见海外服务强制走海外 DNS 防 DNS 污染
             "geosite:google,netflix,telegram,twitter,youtube,github": [
