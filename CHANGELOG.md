@@ -1,3 +1,9 @@
+## [2.2.3](https://github.com/li5135580/override-rules/compare/src-v2.1.5...src-v2.2.3) (2026-05-13)
+
+
+### Features
+
+* 优化 DNS 分流规则 ([88d7519](https://github.com/li5135580/override-rules/commit/88d7519033208d770fbcaf3035ffd6c1f593f8db))
 # Changelog
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
