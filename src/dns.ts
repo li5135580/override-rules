@@ -1,13 +1,17 @@
 /**
- * 默认的 fake-ip 过滤域名列表。
+ * 强化版 fake-ip 过滤域名列表。
  * 这些域名不会被 fake-ip 机制代理，防止 FakeIP 污染。
- * 涵盖：国内域名、私有地址、连通性检查、STUN/NAT、时间同步、Apple Push 等。
+ * 覆盖：国内域名、私有地址、连通性检查、STUN/NAT、时间同步、Apple Push、全局外部域名。
  */
 const FAKE_IP_FILTER = [
     "geosite:private",
-    "geosite:private",
-    "geosite:connectivity-check",
     "geosite:cn",
+    "geosite:connectivity-check",
+    "geosite:google",
+    "geosite:netflix",
+    "geosite:telegram",
+    "geosite:twitter",
+    "geosite:youtube",
     "Mijia Cloud",
     "dig.io.mi.com",
     "localhost.ptlogin2.qq.com",
@@ -31,15 +35,9 @@ const FAKE_IP_FILTER = [
  */
 export const snifferConfig = {
     sniff: {
-        TLS: {
-            ports: [443, 8443],
-        },
-        HTTP: {
-            ports: [80, 8080, 8880],
-        },
-        QUIC: {
-            ports: [443, 8443, 4433],
-        },
+        TLS: { ports: [443, 8443] },
+        HTTP: { ports: [80, 8080, 8880] },
+        QUIC: { ports: [443, 8443, 4433, 4434] }, // 增加常见 QUIC 端口防泄露
     },
     enable: true,
     "force-dns-mapping": true,
@@ -56,7 +54,7 @@ export const snifferConfig = {
 };
 
 /**
- * 构建 DNS 配置的输入参数类型。
+ * 构建 DNS 配置的输入参数类型
  */
 interface BuildDnsConfigInput {
     mode: "redir-host" | "fake-ip";
@@ -65,12 +63,7 @@ interface BuildDnsConfigInput {
 }
 
 /**
- * 构建 Clash DNS 配置对象。
- * @param {BuildDnsConfigInput} params - 构建参数
- * @param {('redir-host'|'fake-ip')} params.mode - DNS 增强模式
- * @param {boolean} params.ipv6Enabled - 是否启用 IPv6
- * @param {string[]=} params.fakeIpFilter - fake-ip 过滤域名列表（可选）
- * @returns {Record<string, unknown>} DNS 配置对象
+ * 构建 Clash DNS 配置对象
  */
 function buildDnsConfig({
     mode,
@@ -86,11 +79,15 @@ function buildDnsConfig({
             "https://doh.pub/dns-query",
             "https://dns.alidns.com/dns-query",
             "tls://dot.pub",
+            "tls://1.1.1.1",
+            "tls://8.8.8.8",
         ],
         nameserver: [
             "https://doh.pub/dns-query",
             "https://dns.alidns.com/dns-query",
             "tls://dot.pub",
+            "tls://1.1.1.1",
+            "tls://8.8.8.8",
         ],
         fallback: [
             "tls://1.1.1.1",
@@ -129,7 +126,7 @@ function buildDnsConfig({
 }
 
 /**
- * 构建 DNS 配置的输入参数类型（外部接口）。
+ * 构建 DNS 配置的外部接口
  */
 export interface BuildDnsInput {
     fakeIPEnabled: boolean;
@@ -137,15 +134,20 @@ export interface BuildDnsInput {
 }
 
 /**
- * 根据 fakeIP 和 IPv6 开关生成最终 DNS 配置。
- * @param {BuildDnsInput} params - 构建参数
- * @param {boolean} params.fakeIPEnabled - 是否启用 fake-ip 模式
- * @param {boolean} params.ipv6Enabled - 是否启用 IPv6
- * @returns {Record<string, unknown>} DNS 配置对象
+ * 生成最终 DNS 配置
  */
 export function buildDns({ fakeIPEnabled, ipv6Enabled }: BuildDnsInput): Record<string, unknown> {
     if (fakeIPEnabled) {
-        return buildDnsConfig({ mode: "fake-ip", ipv6Enabled, fakeIpFilter: FAKE_IP_FILTER });
+        // 强制启用 FakeIP + 全局黑名单
+        return buildDnsConfig({
+            mode: "fake-ip",
+            ipv6Enabled,
+            fakeIpFilter: FAKE_IP_FILTER,
+        });
     }
-    return buildDnsConfig({ mode: "redir-host", ipv6Enabled });
+    // Redir-Host 模式，也可以保证 IPv4/IPv6 请求走代理
+    return buildDnsConfig({
+        mode: "redir-host",
+        ipv6Enabled,
+    });
 }

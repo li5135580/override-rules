@@ -6,7 +6,7 @@ export const ruleProviders = {
         behavior: "domain",
         format: "mrs",
         interval: 86400,
-        url: `${CDN_URL}/gh/217heidai/adblockfilters@main/rules/adblockmihomolite.mrs`,
+        url: `${CDN_URL}/gh/217heidai/adblockfilters@main/rules/adblockmihomo.mrs`,
         path: "./ruleset/ADBlock.mrs",
     },
     StaticResources: {
